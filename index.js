@@ -1,4 +1,6 @@
 const api = "TW3JTUUM3483ZAAWB3F73NX5V";
+const gif_api = "KBFOsWeI76G1t9Be9deXVEuORXEu2968";
+let currentWeather = null;
 
 let celsius = false;
 
@@ -18,6 +20,15 @@ async function getWeather(location) {
     return info;
 }
 
+async function getGif(conditions){
+    const url = `https://api.giphy.com/v1/gifs/translate?api_key=${gif_api}&s=${conditions} weather`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    return data.data.images.original.url;
+}
+
 form.addEventListener('submit', async (e) => {
     e.preventDefault()
 
@@ -26,7 +37,7 @@ form.addEventListener('submit', async (e) => {
     const weatherInfo = await getWeather(location);
     
     currentWeather = weatherInfo; 
-    showWeather(weatherInfo);
+    await showWeather(weatherInfo);
 
 })
 
@@ -46,7 +57,7 @@ function fToC(F) {
     return ((F - 32) * 5/9).toFixed(1);
 }
 
-function showWeather (weatherInfo){
+async function showWeather (weatherInfo){
     if (celsius){
         temp = fToC(weatherInfo.temp);
     } else {
@@ -60,11 +71,14 @@ function showWeather (weatherInfo){
         unit = '°F';
     }
 
+    const gifUrl = await getGif(weatherInfo.conditions);
+
     display.innerHTML = `
     <h2>${weatherInfo.location}</h2>
+    <img src="${gifUrl}" alt="${weatherInfo.conditions}" width="300">
     <p>temperature: ${temp}${unit}</p>
     <p>conditions: ${weatherInfo.conditions}</p>
-    <p>humidty %: ${weatherInfo.humidity}%</p>
+    <p>humidty: ${weatherInfo.humidity}%</p>
     <p>wind speed: ${weatherInfo.windSpeed} mph</p>
     `;
 } 
@@ -73,7 +87,7 @@ function showWeather (weatherInfo){
 
 const measurement = document.getElementById('measurement')
 
-measurement.addEventListener('click', () =>{
+measurement.addEventListener('click', async () =>{
     celsius = !celsius
 
     if (celsius) {
@@ -83,6 +97,7 @@ measurement.addEventListener('click', () =>{
     }
     
     if (currentWeather) {
-        showWeather(currentWeather);
+        await showWeather(currentWeather);
     }
 })
+
